@@ -9,8 +9,15 @@ using System.Linq;
 public class AvatarManager : MonoBehaviour
 {
     public Text playerName;
-    public List<GameObject> destroyIfNotLocal;
-    public List<GameObject> destroyIfLocal;
+
+    public Camera cam;
+    public Camera gunCamera;
+    public AudioListener audioListener;
+
+    public GameObject graphics;
+    public GameObject localCanvas;
+
+    public GameObject gunContainer;
     PhotonView _pv;
 
     // Start is called before the first frame update
@@ -20,12 +27,14 @@ public class AvatarManager : MonoBehaviour
         if (_pv.IsMine)
         { 
             _pv.RPC("RPC_AddNameToCharacter", RpcTarget.AllBuffered, PlayerInfo.Instance.playerName);
-            gameObject.layer = 9;
-            destroyIfLocal.ForEach(x => Destroy(x));
+
+            gameObject.SetLayerRecursively(9);
+            gunContainer.SetLayerRecursively(11);
+            DisableLocalElements();
         }
         else
         {
-            destroyIfNotLocal.ForEach(x => Destroy(x));
+            DisableOtherPlayerElements();
         }
     }
 
@@ -34,4 +43,17 @@ public class AvatarManager : MonoBehaviour
     {
         playerName.text = name;
     }
+
+    void DisableLocalElements()
+    {
+        graphics.SetActive(false);
+        localCanvas.SetActive(false);
+    }
+
+    void DisableOtherPlayerElements()
+    {
+        cam.enabled = false;
+        audioListener.enabled = false;
+        gunCamera.enabled = false;
+    } 
 }

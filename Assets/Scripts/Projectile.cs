@@ -12,7 +12,7 @@ public class Projectile : MonoBehaviour
     PhotonView _pv;
     Rigidbody _rb;
     float counter;
-    Player owner;
+    public Player Owner { get; private set; }
 
 
     // Start is called before the first frame update
@@ -21,7 +21,7 @@ public class Projectile : MonoBehaviour
         _pv = GetComponent<PhotonView>();
         _rb = GetComponent<Rigidbody>();
         _rb.AddForce(transform.forward * bulletImpulse, ForceMode.Impulse);
-        if(_pv.IsMine) owner = PhotonNetwork.LocalPlayer;
+        if(_pv.IsMine) Owner = PhotonNetwork.LocalPlayer;
     }
 
     // Update is called once per frame

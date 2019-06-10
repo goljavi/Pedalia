@@ -6,9 +6,12 @@ using UnityEngine;
 
 public class Hero : MonoBehaviour
 {
-    public Camera cam;
+    public GameObject cam;
     public float cameraRotationLimit = 85;
     public float impulseForce = 30;
+    public Animator anim;
+    public Transform bulletSpawnPoint;
+    public HeroController heroControllerInstance;
 
     Rigidbody _rb;
     PhotonView _pv;
@@ -25,10 +28,9 @@ public class Hero : MonoBehaviour
         _pv = GetComponent<PhotonView>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
+        PerformAnimations();
     }
 
     public void Move(Vector3 velocity)
@@ -57,12 +59,23 @@ public class Hero : MonoBehaviour
         PerformRotation();
     }
 
+    void PerformAnimations()
+    {
+        if (_velocity != Vector3.zero) anim.SetBool("Running", true);
+        else anim.SetBool("Running", false);
+
+        if (_rb.velocity.y > 0.1f || _rb.velocity.y < -0.1f) anim.SetBool("Jumping", true);
+        else anim.SetBool("Jumping", false);
+    }
+
     void PerformMovement()
     {
         if (_velocity != Vector3.zero)
         {
             _rb.MovePosition(_rb.position + _velocity * Time.deltaTime);
         }
+
+        if(_rb)
 
         if (_thrusterForce != Vector3.zero)
         {
@@ -73,30 +86,35 @@ public class Hero : MonoBehaviour
     void PerformRotation()
     {
         if (_rotation != Vector3.zero) _rb.MoveRotation(_rb.rotation * Quaternion.Euler(_rotation));
-        if (cam != null)
-        {
-            _currentCameraRotationX -= _cameraRotationX;
-            _currentCameraRotationX = Mathf.Clamp(_currentCameraRotationX, -cameraRotationLimit, cameraRotationLimit);
-            cam.transform.localEulerAngles = new Vector3(_currentCameraRotationX, 0, 0);
-        }
+        _pv.RPC("RPC_PerformCamRotation", RpcTarget.All, _cameraRotationX);
+    }
+
+    [PunRPC]
+    void RPC_PerformCamRotation(float cameraRotationX)
+    {
+        if (!cam) return;
+        _currentCameraRotationX -= cameraRotationX;
+        _currentCameraRotationX = Mathf.Clamp(_currentCameraRotationX, -cameraRotationLimit, cameraRotationLimit);
+        cam.transform.localEulerAngles = new Vector3(_currentCameraRotationX, 0, 0);
     }
 
     public void Fire()
     {
-        var projectile = PhotonNetwork.Instantiate("Projectile", transform.position, transform.rotation);
+        var projectile = PhotonNetwork.Instantiate("Projectile", bulletSpawnPoint.position, transform.rotation);
         projectile.transform.forward = cam.transform.forward;
     }
 
     private void OnTriggerEnter(Collider other)
     {
+        //TODO Que las balas no choquen con vos mismo.
         var bullet = other.GetComponent<Projectile>();
-        if (bullet)
-        {
-            GetPushed(bullet.transform.forward);
-        }
+        if (bullet) _pv.RPC("RPC_GetPushed", _pv.Owner, bullet.transform.forward);
+
+        if (_pv.IsMine && other.gameObject.layer == 12) heroControllerInstance.Die();
     }
 
-    void GetPushed(Vector3 dir)
+    [PunRPC]
+    void RPC_GetPushed(Vector3 dir)
     {
         _rb.AddForce(dir * impulseForce, ForceMode.Impulse);
     }

@@ -25,7 +25,7 @@ MonoBehaviour:
     EnableLobbyStatistics: 0
     NetworkLogging: 1
   StartInOfflineMode: 0
-  PunLogging: 2
+  PunLogging: 0
   EnableSupportLogger: 0
   RunInBackground: 1
   RpcList:
@@ -35,5 +35,8 @@ MonoBehaviour:
   - RPC_AddNameToCharacter
   - RPC_DestroySelf
   - RPC_SetBulletOwnership
+  - GetPushed
+  - RPC_GetPushed
+  - RPC_PerformCamRotation
   DisableAutoOpenWizard: 1
   ShowSettings: 1
