@@ -7,7 +7,7 @@ public class HeroKeyboardController
 {
     public static float speed = 7;
     public float lookSpeed = 5;
-    public static float thrusterForce = 2500;
+    public static float thrusterForce = 1500;
     public float thrustUseSpeed = 1;
     public static float thrustRegenSpeed = 0.28f;
     public float thrustAmount = 1;

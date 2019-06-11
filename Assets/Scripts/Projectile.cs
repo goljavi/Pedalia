@@ -9,25 +9,29 @@ public class Projectile : MonoBehaviour
     public float bulletLifetime;
     public float bulletImpulse;
 
-    PhotonView _pv;
+    public PhotonView pv;
     Rigidbody _rb;
     float counter;
-    public Player Owner { get; private set; }
 
+
+    private void Awake()
+    {
+        pv = GetComponent<PhotonView>();
+        _rb = GetComponent<Rigidbody>();
+    }
 
     // Start is called before the first frame update
     void Start()
     {
-        _pv = GetComponent<PhotonView>();
-        _rb = GetComponent<Rigidbody>();
+        transform.forward = (Vector3)pv.InstantiationData[0];
         _rb.AddForce(transform.forward * bulletImpulse, ForceMode.Impulse);
-        if(_pv.IsMine) Owner = PhotonNetwork.LocalPlayer;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!_pv.IsMine) return;
+
+        if (!pv.IsMine) return;
 
         counter += Time.deltaTime;
         if(counter >= bulletLifetime) DestroySelf();
@@ -35,7 +39,7 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (_pv.IsMine) DestroySelf();
+        if (pv.IsMine) DestroySelf();
     }
 
     private void DestroySelf()

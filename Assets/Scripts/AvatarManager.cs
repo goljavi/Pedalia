@@ -18,6 +18,7 @@ public class AvatarManager : MonoBehaviour
     public GameObject localCanvas;
 
     public GameObject gunContainer;
+    public GameObject particles;
     PhotonView _pv;
 
     // Start is called before the first frame update
@@ -25,11 +26,30 @@ public class AvatarManager : MonoBehaviour
     {
         _pv = GetComponent<PhotonView>();
         if (_pv.IsMine)
-        { 
-            _pv.RPC("RPC_AddNameToCharacter", RpcTarget.AllBuffered, PlayerInfo.Instance.playerName);
+        {
+            bool nameFound = true;
+            var playerName = PlayerInfo.Instance.playerName;
+
+            while (nameFound)
+            {
+                nameFound = false;
+                foreach (var hero in FindObjectsOfType<Hero>())
+                {
+                    if(hero.transform.name == playerName)
+                    {
+                        nameFound = true;
+                        playerName += " Copy";
+                        break;
+                    }
+                }
+            }
+
+            PlayerInfo.Instance.playerName = playerName;
+            _pv.RPC("RPC_AddNameToCharacter", RpcTarget.AllBuffered, playerName);
 
             gameObject.SetLayerRecursively(9);
             gunContainer.SetLayerRecursively(11);
+            particles.SetLayerRecursively(0);
             DisableLocalElements();
         }
         else
@@ -41,12 +61,12 @@ public class AvatarManager : MonoBehaviour
     [PunRPC]
     void RPC_AddNameToCharacter(string name)
     {
+        transform.name = name;
         playerName.text = name;
     }
 
     void DisableLocalElements()
     {
-        graphics.SetActive(false);
         localCanvas.SetActive(false);
     }
 

@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Bullet
+  - Flag
+  - FlagSpawn
   layers:
   - Default
   - TransparentFX
@@ -19,7 +21,7 @@ TagManager:
   - Projectile
   - Gun
   - KillPlatform
-  - 
+  - FlagDeposit
   - 
   - 
   - 
