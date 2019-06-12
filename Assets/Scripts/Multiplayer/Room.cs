@@ -8,6 +8,7 @@ using Photon.Realtime;
 public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
 {
     public static Room Instance;
+    public GameObject UIPrefab;
     public int currentScene;
     public int multiplayerScene = 1;
 
@@ -64,6 +65,7 @@ public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
 
     private void CreatePlayer()
     {
+        Instantiate(UIPrefab);
         PhotonNetwork.Instantiate("HeroController", transform.position, Quaternion.identity);
     }
 
@@ -71,5 +73,22 @@ public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
     {
         base.OnPlayerLeftRoom(otherPlayer);
         Debug.Log("Room: OnPlayerLeftRoom()");
+    }
+
+    public void Disconnect()
+    {
+        PhotonNetwork.LeaveRoom();
+        StartCoroutine(LoadMenuWhenDisconnected());
+    }
+
+    IEnumerator LoadMenuWhenDisconnected()
+    {
+        while (PhotonNetwork.InRoom) yield return null;
+        SceneManager.LoadScene(0);
+    }
+
+    public void LeaveGame()
+    {
+        Application.Quit();
     }
 }

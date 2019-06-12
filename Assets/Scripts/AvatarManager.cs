@@ -46,6 +46,7 @@ public class AvatarManager : MonoBehaviour
 
             PlayerInfo.Instance.playerName = playerName;
             _pv.RPC("RPC_AddNameToCharacter", RpcTarget.AllBuffered, playerName);
+            PlayerUI.Instance.SetPlayerUIName(playerName);
 
             gameObject.SetLayerRecursively(9);
             gunContainer.SetLayerRecursively(11);

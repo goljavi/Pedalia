@@ -1,17 +1,17 @@
-﻿using System.Collections;
+﻿using Photon.Pun;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.Networking.Match;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class PlayerUI : MonoBehaviour
 {
-
     public RectTransform thrustBarAmount;
     public GameObject pauseMenu;
-    public GameObject console;
-    public static PlayerUI instance;
+    public static PlayerUI Instance;
     public static bool pauseMenuOpen = false;
     public static bool consoleOpen = false;
     public static bool victoryShown = false;
@@ -19,52 +19,47 @@ public class PlayerUI : MonoBehaviour
     private Text _flagOwner;
     private Text _flagNumber;
     private Text _victory;
-    private GameObject _playerNameObj;
     private GameObject _flagOwnerObj;
     private GameObject _flagNumberObj;
+    private GameObject _playerNameObj;
     private GameObject _victoryObj;
-
-    void Start()
-    {
-        
-    }
+    private GameObject _matchBeginObj;
+    private GameObject _waitingPlayers;
+    public float ThrustAmount { private get; set; }
 
     void Awake()
     {
-        instance = this;
-        _playerNameObj = GameObject.Find("PlayerName");
-        _flagOwnerObj = GameObject.Find("FlagOwner");
-        _flagNumberObj = GameObject.Find("FlagNumber");
-        _victoryObj = GameObject.Find("VictorySign");
+        Instance = this;
+        _flagOwnerObj = transform.Find("FlagOwner").gameObject;
+        _flagNumberObj = transform.Find("FlagNumber").gameObject;
+        _victoryObj = transform.Find("VictorySign").gameObject;
+        _playerNameObj = transform.Find("PlayerName").gameObject;
+        _matchBeginObj = transform.Find("MatchBegin").gameObject;
+        _waitingPlayers = transform.Find("WaitingPlayers").gameObject;
+
         _playerName = _playerNameObj.GetComponent<Text>();
         _flagOwner = _flagOwnerObj.GetComponent<Text>();
         _flagNumber = _flagNumberObj.GetComponent<Text>();
         _victory = _victoryObj.GetComponent<Text>();
     }
 
+    private void Start()
+    {
+        _flagOwnerObj.SetActive(false);
+        _flagNumberObj.SetActive(false);
+        _waitingPlayers.SetActive(true);
+    }
+
     void Update()
     {
-        //thrustBarAmount.localScale = new Vector3(1, controller.thrustAmount, 1);
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            TogglePauseMenu();
-        }
-        if (Input.GetKeyDown(KeyCode.F12))
-        {
-            ToggleConsole();
-        }
-
+        thrustBarAmount.localScale = new Vector3(1, ThrustAmount, 1);
+        if (Input.GetKeyDown(KeyCode.Escape)) TogglePauseMenu();
     }
 
     public void TogglePauseMenu()
     {
         pauseMenu.SetActive(!pauseMenu.activeSelf);
         pauseMenuOpen = pauseMenu.activeSelf;
-    }
-    public void ToggleConsole()
-    {
-        console.SetActive(!console.activeSelf);
-        consoleOpen = console.activeSelf;
     }
 
     public void SetPlayerUIName(string txt)
@@ -87,8 +82,34 @@ public class PlayerUI : MonoBehaviour
         _victory.text = name + " Wins!";
         victoryShown = true;
 
-        GameObject.Find("Crosshair").SetActive(false);
+        transform.Find("Crosshair").gameObject.SetActive(false);
         _flagOwnerObj.SetActive(false);
         _flagNumberObj.SetActive(false);
+    }
+
+    public void TriggerMatchBegin()
+    {
+        _flagOwnerObj.SetActive(true);
+        _flagNumberObj.SetActive(true);
+        _waitingPlayers.SetActive(false);
+        _matchBeginObj.SetActive(true);
+    }
+
+    public void MatchBegin()
+    {
+        _flagOwnerObj.SetActive(true);
+        _flagNumberObj.SetActive(true);
+        _waitingPlayers.SetActive(false);
+        _matchBeginObj.SetActive(false);
+    }
+
+    public void Disconnect()
+    {
+        Room.Instance.Disconnect();
+    }
+
+    public void LeaveGame()
+    {
+        Room.Instance.LeaveGame();
     }
 }

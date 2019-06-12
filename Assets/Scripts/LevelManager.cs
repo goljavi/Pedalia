@@ -3,13 +3,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance;
-    public Transform[] spawnPoints;
+    public float timeForFlagToReAppear = 1;
+    public float timeForExit = 5;
 
-    float counter;
+    [HideInInspector] public HeroController heroControllerInstance;
+
+    PhotonView _pv;
+    float _flagSpawnCounter;
+    Hero _flagOwner;
+    bool _win = false;
+    Transform[] _spawnPoints;
+    int _playerQty;
+    bool _matchStarted;
+
+    private void Awake()
+    {
+        _pv = GetComponent<PhotonView>();
+        _spawnPoints = GameObject.Find("SpawnPoints").GetComponentsInChildren<Transform>();
+    }
 
     private void OnEnable()
     {
@@ -18,53 +34,102 @@ public class LevelManager : MonoBehaviour
 
     public Vector3 Pick()
     {
-        return spawnPoints[Random.Range(0, spawnPoints.Length)].position;
-    }
-
-    public void Disconnect()
-    {
-        PhotonNetwork.LeaveRoom();
-        StartCoroutine(LoadMenuWhenDisconnected());
-    }
-
-    IEnumerator LoadMenuWhenDisconnected()
-    {
-        while (PhotonNetwork.InRoom) yield return null;
-        SceneManager.LoadScene(0);
+        return _spawnPoints[Random.Range(0, _spawnPoints.Length)].position;
     }
 
     void Update()
     {
-        if (!PhotonNetwork.IsMasterClient) return;
+        if (!PhotonNetwork.IsMasterClient || _win) return;
+
+        if (!_matchStarted)
+        {
+            if (PhotonNetwork.PlayerList.Length > 1) StartCoroutine(StartMatch());
+            return;
+        }
 
         var checkFlag = false;
-        var players = FindObjectsOfType<Hero>();
 
-
-        foreach (Hero player in players)
+        foreach (var player in FindObjectsOfType<Hero>())
         {
-            if (player.flagCount >= 3)
-            {
-                //Win
-            }
+            if (player.flagCount >= 3) SetWin(player);
 
             if (player.hasFlag)
             {
-                //PlayerUI.instance.SetFlagOwnerUI(player.transform.name);
+                if (player != _flagOwner) SetFlagOwner(player);
                 checkFlag = true;
             }
         }
 
         if (!checkFlag && GameObject.FindGameObjectsWithTag("Flag").Length == 0)
         {
-            counter += Time.deltaTime;
-            if (counter > 1)
-            {
-                //PlayerUI.instance.SetFlagOwnerUI("None");
-                PhotonNetwork.Instantiate("Flag", GameObject.FindGameObjectsWithTag("FlagSpawn")[0].transform.position, Quaternion.identity);
-                counter = 0;
-            }
+            if (_flagOwner != null) SetFlagOwner(null);
 
+            _flagSpawnCounter += Time.deltaTime;
+            if (_flagSpawnCounter > timeForFlagToReAppear) InstantiateFlag();
         }
+    }
+
+    IEnumerator StartMatch()
+    {
+        _pv.RPC("RPC_DieBeforeMatch", RpcTarget.All);
+        _matchStarted = true;
+        yield return new WaitForSeconds(heroControllerInstance.respawnTime);
+        UnFreezePlayers();
+    }
+
+    void UnFreezePlayers()
+    {
+        _pv.RPC("RPC_BeginMatch", RpcTarget.AllBuffered);
+    }
+
+    [PunRPC]
+    void RPC_BeginMatch()
+    {
+        _matchStarted = true;
+        PlayerUI.Instance.MatchBegin();
+    }
+
+    [PunRPC]
+    void RPC_DieBeforeMatch()
+    {
+        heroControllerInstance.Die(false);
+        PlayerUI.Instance.TriggerMatchBegin();
+    }
+
+    void InstantiateFlag()
+    {
+        PhotonNetwork.Instantiate("Flag", GameObject.FindGameObjectsWithTag("FlagSpawn")[0].transform.position, Quaternion.identity);
+        _flagSpawnCounter = 0;
+    }
+
+    void SetFlagOwner(Hero player)
+    {
+        _flagOwner = player;
+        _pv.RPC("RPC_SetFlagOwnership", RpcTarget.AllBuffered, player ? player.transform.name : "None");
+    }
+
+    void SetWin(Hero player)
+    {
+        _pv.RPC("RPC_Winner", RpcTarget.AllBuffered, player.transform.name);
+        _win = true;
+    }
+
+    [PunRPC]
+    void RPC_SetFlagOwnership(string owner)
+    {
+        PlayerUI.Instance.SetFlagOwnerUI(owner);
+    }
+
+    [PunRPC]
+    void RPC_Winner(string winner)
+    {
+        PlayerUI.Instance.TriggerVictoryUI(winner);
+        StartCoroutine(ThrowEveryoneOut());
+    }
+
+    IEnumerator ThrowEveryoneOut()
+    {
+        yield return new WaitForSeconds(timeForExit);
+        Room.Instance.Disconnect();
     }
 }

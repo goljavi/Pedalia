@@ -37,11 +37,6 @@ public class Projectile : MonoBehaviour
         if(counter >= bulletLifetime) DestroySelf();
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (pv.IsMine) DestroySelf();
-    }
-
     private void DestroySelf()
     {
         PhotonNetwork.Destroy(gameObject);

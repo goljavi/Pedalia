@@ -7,10 +7,6 @@ public class HeroKeyboardController
 {
     public static float speed = 7;
     public float lookSpeed = 5;
-    public static float thrusterForce = 1500;
-    public float thrustUseSpeed = 1;
-    public static float thrustRegenSpeed = 0.28f;
-    public float thrustAmount = 1;
     Hero _hero;
 
     public HeroKeyboardController(Hero hero)
@@ -22,23 +18,8 @@ public class HeroKeyboardController
     {
         if (!_hero) return;
 
-        //Thrust regen
-        thrustAmount += thrustRegenSpeed * Time.deltaTime;
-        thrustAmount = Mathf.Clamp(thrustAmount, 0, 1);
-
-        //Thruster force
-        var thrust = Vector3.zero;
-        if (Input.GetButton("Jump") && thrustAmount > 0)
-        {
-            thrustAmount -= thrustUseSpeed * Time.deltaTime;
-            if (thrustAmount > 0.1f)
-            {
-                thrust = Vector3.up * thrusterForce;
-            }
-        }
-
-        //Thrust apply
-        _hero.ApplyThruster(thrust);
+        //Jet pack
+        _hero.UsingJetpack(Input.GetButton("Jump"));
 
         //Movement
         _hero.Move(((_hero.transform.right * Input.GetAxisRaw("Horizontal")) + (_hero.transform.forward * Input.GetAxisRaw("Vertical"))).normalized * speed);

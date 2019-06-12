@@ -825,6 +825,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4cc08e206ccd92f46ac087dec6c875c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  UIPrefab: {fileID: 1382700882097410, guid: d27773ad26a1a6d47b644c58142afcf0, type: 3}
   currentScene: 0
   multiplayerScene: 1
 --- !u!4 &1079497450

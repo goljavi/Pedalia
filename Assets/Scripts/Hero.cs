@@ -13,6 +13,10 @@ public class Hero : MonoBehaviour
     public Transform bulletSpawnPoint;
     public GameObject playerHasFlagParticles;
     public GameObject jetpackParticles;
+    public float thrusterForce = 1500;
+    public float thrustUseSpeed = 1;
+    public float thrustRegenSpeed = 0.28f;
+    public float thrustAmount = 1;
 
     [HideInInspector] public HeroController heroControllerInstance;
     [HideInInspector] public bool hasFlag = false;
@@ -26,19 +30,53 @@ public class Hero : MonoBehaviour
     float _currentCameraRotationX = 0;
     Vector3 _thrusterForce = Vector3.zero;
     bool _jetpackParticlesValueBefore = false;
+    bool usingJetpack = false;
 
     // Start is called before the first frame update
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
         _pv = GetComponent<PhotonView>();
-        PhotonNetwork.Instantiate("PlayerSpawn", transform.position + new Vector3(0, 0.5f, 0), Quaternion.identity);
+        if((bool)_pv.InstantiationData[0]) PhotonNetwork.Instantiate("PlayerSpawn", transform.position + new Vector3(0, 0.5f, 0), Quaternion.identity);
     }
 
     private void Update()
     {
         if (!_pv.IsMine) return;
         PerformAnimations();
+        ThrusterWorks();
+        SetUI();
+    }
+
+    void SetUI()
+    {
+        PlayerUI.Instance.ThrustAmount = thrustAmount;
+    }
+
+    void ThrusterWorks()
+    {
+        //Thrust regen
+        thrustAmount += thrustRegenSpeed * Time.deltaTime;
+        thrustAmount = Mathf.Clamp(thrustAmount, 0, 1);
+
+        //Thruster force
+        var thrust = Vector3.zero;
+        if (usingJetpack && thrustAmount > 0)
+        {
+            thrustAmount -= thrustUseSpeed * Time.deltaTime;
+            if (thrustAmount > 0.1f)
+            {
+                thrust = Vector3.up * thrusterForce;
+            }
+        }
+
+        //Thrust apply
+        ApplyThruster(thrust);
+    }
+
+    public void UsingJetpack(bool value)
+    {
+        usingJetpack = value;
     }
 
     public void Move(Vector3 velocity)
@@ -131,11 +169,18 @@ public class Hero : MonoBehaviour
         var projectile = PhotonNetwork.Instantiate("Projectile", bulletSpawnPoint.position, transform.rotation, 0, new object[] { cam.transform.forward });
     }
 
+    private void OnCollisionEnter(Collision other)
+    {
+        var bullet = other.gameObject.GetComponent<Projectile>();
+        if (bullet && bullet.pv.Owner.ActorNumber != _pv.Owner.ActorNumber)
+        {
+            _pv.RPC("RPC_GetPushed", _pv.Owner, bullet.transform.forward);
+            PhotonNetwork.Instantiate("BulletExplosion", transform.position + new Vector3(0, 1, 0), Quaternion.identity);
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        var bullet = other.GetComponent<Projectile>();
-        if (bullet && bullet.pv.Owner.ActorNumber != _pv.Owner.ActorNumber) _pv.RPC("RPC_GetPushed", _pv.Owner, bullet.transform.forward);
-
         if (_pv.IsMine && other.gameObject.layer == 12) Die();
         if (_pv.IsMine && hasFlag && other.gameObject.layer == 13) RemoveFlag();
     }
@@ -154,6 +199,7 @@ public class Hero : MonoBehaviour
 
     public void RemoveFlag()
     {
+        PlayerUI.Instance.SetFlagNumberUI(flagCount + 1);
         _pv.RPC("RPC_RemoveFlag", RpcTarget.All);
     }
 
@@ -177,6 +223,7 @@ public class Hero : MonoBehaviour
     void RPC_GetPushed(Vector3 dir)
     {
         _rb.AddForce(dir * impulseForce, ForceMode.Impulse);
+        _rb.AddForce(Vector3.up * impulseForce, ForceMode.Impulse);
     }
 
     [PunRPC]
