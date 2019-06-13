@@ -66,4 +66,9 @@ public class Lobby : MonoBehaviourPunCallbacks
         playButton.SetActive(true);
         nameInput.SetActive(true);
     }
+
+    public void LeaveGame()
+    {
+        Application.Quit();
+    }
 }

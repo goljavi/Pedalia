@@ -32,9 +32,9 @@ public class LevelManager : MonoBehaviour
         if (!Instance) Instance = this;
     }
 
-    public Vector3 Pick()
+    public Transform Pick()
     {
-        return _spawnPoints[Random.Range(0, _spawnPoints.Length)].position;
+        return _spawnPoints[Random.Range(0, _spawnPoints.Length)];
     }
 
     void Update()

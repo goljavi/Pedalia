@@ -37,6 +37,15 @@ public class Projectile : MonoBehaviour
         if(counter >= bulletLifetime) DestroySelf();
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            transform.forward = collision.GetContact(0).normal;
+            _rb.AddForce(transform.forward * bulletImpulse / 2, ForceMode.Impulse);
+        } 
+    }
+
     private void DestroySelf()
     {
         PhotonNetwork.Destroy(gameObject);

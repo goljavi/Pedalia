@@ -38,6 +38,7 @@ public class Hero : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         _pv = GetComponent<PhotonView>();
         if((bool)_pv.InstantiationData[0]) PhotonNetwork.Instantiate("PlayerSpawn", transform.position + new Vector3(0, 0.5f, 0), Quaternion.identity);
+        transform.forward = (Vector3)_pv.InstantiationData[1];
     }
 
     private void Update()

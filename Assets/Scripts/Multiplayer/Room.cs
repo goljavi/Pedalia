@@ -107,9 +107,4 @@ public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
         while (PhotonNetwork.InRoom) yield return null;
         SceneManager.LoadScene(0);
     }
-
-    public void LeaveGame()
-    {
-        Application.Quit();
-    }
 }

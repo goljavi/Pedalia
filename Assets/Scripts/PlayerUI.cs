@@ -111,9 +111,4 @@ public class PlayerUI : MonoBehaviour
     {
         Room.Instance.Disconnect();
     }
-
-    public void LeaveGame()
-    {
-        Room.Instance.LeaveGame();
-    }
 }
