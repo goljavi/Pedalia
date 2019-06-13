@@ -4,13 +4,14 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Photon.Pun;
 using Photon.Realtime;
+using UnityEngine.UI;
 
 public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
 {
     public static Room Instance;
-    public GameObject UIPrefab;
     public int currentScene;
     public int multiplayerScene = 1;
+    public static DisconnectCause disconnectError =  DisconnectCause.None;
 
     PhotonView _pv;
 
@@ -18,8 +19,17 @@ public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
     {
         /* Si estoy creando un nuevo objeto room pero el singleton ya tiene un objeto 
          * cargado (por ejemplo, porque viene de una escena anterior) lo destruyo.*/
-        if (Instance && Instance != this) Destroy(Instance.gameObject);
-        if (!Instance) Instance = this;
+        if (Instance && Instance != this)
+        {
+            if (Instance != this)
+            {
+                Destroy(Instance.gameObject);
+            }
+        }
+        if (!Instance)
+        {
+            Instance = this;
+        }
         DontDestroyOnLoad(gameObject);
     }
 
@@ -31,14 +41,17 @@ public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
     public override void OnEnable()
     {
         base.OnEnable();
-        PhotonNetwork.AddCallbackTarget(this);
         SceneManager.sceneLoaded += OnSceneFinishedLoading;
+        var errors = GameObject.Find("Errors");
+        if (errors && disconnectError != DisconnectCause.None && disconnectError != DisconnectCause.DisconnectByClientLogic)
+        {
+            errors.GetComponent<Text>().text = "Error: " + disconnectError;
+        }
     }
 
     public override void OnDisable()
     {
         base.OnDisable();
-        PhotonNetwork.RemoveCallbackTarget(this);
         SceneManager.sceneLoaded -= OnSceneFinishedLoading;
     }
 
@@ -46,7 +59,7 @@ public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
     {
         base.OnJoinedRoom();
         Debug.Log("Room: OnJoinedRoom()");
-        if(PhotonNetwork.IsMasterClient) StartGame();
+        StartGame();
     }
 
     void StartGame()
@@ -65,7 +78,8 @@ public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
 
     private void CreatePlayer()
     {
-        Instantiate(UIPrefab);
+        disconnectError = DisconnectCause.None;
+        Instantiate(Resources.Load("PlayerUI"));
         PhotonNetwork.Instantiate("HeroController", transform.position, Quaternion.identity);
     }
 
@@ -75,9 +89,16 @@ public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
         Debug.Log("Room: OnPlayerLeftRoom()");
     }
 
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        base.OnDisconnected(cause);
+        disconnectError = cause;
+        SceneManager.LoadScene(0);
+    }
+
     public void Disconnect()
     {
-        PhotonNetwork.LeaveRoom();
+        PhotonNetwork.Disconnect();
         StartCoroutine(LoadMenuWhenDisconnected());
     }
 

@@ -20,7 +20,7 @@ public class Hero : MonoBehaviour
 
     [HideInInspector] public HeroController heroControllerInstance;
     [HideInInspector] public bool hasFlag = false;
-    [HideInInspector] public int flagCount = 0;
+    [HideInInspector] public int flagCount;
 
     Rigidbody _rb;
     PhotonView _pv;
@@ -175,7 +175,7 @@ public class Hero : MonoBehaviour
         if (bullet && bullet.pv.Owner.ActorNumber != _pv.Owner.ActorNumber)
         {
             _pv.RPC("RPC_GetPushed", _pv.Owner, bullet.transform.forward);
-            PhotonNetwork.Instantiate("BulletExplosion", transform.position + new Vector3(0, 1, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("BulletExplosion", other.GetContact(0).point, Quaternion.identity);
         }
     }
 
@@ -216,6 +216,7 @@ public class Hero : MonoBehaviour
         hasFlag = false;
         playerHasFlagParticles.SetActive(false);
         flagCount++;
+        heroControllerInstance.AddFlag();
         PhotonNetwork.Instantiate("LeaveFlag", transform.position + new Vector3(0, 1, 0), Quaternion.identity);
     }
 

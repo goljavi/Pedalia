@@ -7,21 +7,23 @@ public class HeroController : MonoBehaviour
 {
     public float respawnTime = 3;
     public Hero hero;
-
-    public bool frozen;
-
+    
     PhotonView _pv;
     HeroKeyboardController _hkc;
     GameObject _sceneCamera;
     AudioListener _sceneAudioListener;
     bool _instantiateParticles;
+    int _flagCount;
 
     // Start is called before the first frame update
     void Start()
     {
         _pv = GetComponent<PhotonView>();
+        if (!_pv.IsMine) return;
         _sceneCamera = GameObject.Find("SceneCamera");
         _sceneAudioListener = _sceneCamera.GetComponent<AudioListener>();
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         LevelManager.Instance.heroControllerInstance = this;
         SpawnHero();
     }
@@ -31,8 +33,7 @@ public class HeroController : MonoBehaviour
     {
         if (_pv.IsMine && _hkc != null)
         {
-            if (frozen) return;
-            _hkc.Update();
+            _hkc.Update(PlayerUI.Instance.pauseMenuOpen);
         }
     }
 
@@ -40,8 +41,9 @@ public class HeroController : MonoBehaviour
     {
         if (!_pv.IsMine) return;
         _sceneCamera.SetActive(false);
-        _sceneAudioListener.enabled = false;
+        if(_sceneAudioListener) _sceneAudioListener.enabled = false;
         hero = PhotonNetwork.Instantiate("Hero", LevelManager.Instance.Pick(), Quaternion.identity, 0, new object[] { _instantiateParticles }).GetComponent<Hero>();
+        hero.flagCount = _flagCount;
         _hkc = new HeroKeyboardController(hero);
         hero.heroControllerInstance = this;
     }
@@ -57,9 +59,9 @@ public class HeroController : MonoBehaviour
         StartCoroutine(Respawn());
     }
 
-    public void ToggleFreeze()
+    public void AddFlag()
     {
-        frozen = !frozen;
+        _flagCount++;
     }
 
     IEnumerator Respawn()

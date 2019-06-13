@@ -74,12 +74,7 @@ public class LevelManager : MonoBehaviour
         _pv.RPC("RPC_DieBeforeMatch", RpcTarget.All);
         _matchStarted = true;
         yield return new WaitForSeconds(heroControllerInstance.respawnTime);
-        UnFreezePlayers();
-    }
-
-    void UnFreezePlayers()
-    {
-        _pv.RPC("RPC_BeginMatch", RpcTarget.AllBuffered);
+        _pv.RPC("RPC_BeginMatch", RpcTarget.AllBufferedViaServer);
     }
 
     [PunRPC]
