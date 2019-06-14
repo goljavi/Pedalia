@@ -76,7 +76,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cam: {fileID: 185}
   cameraRotationLimit: 85
-  impulseForce: 1500
+  impulseForce: 2000
   anim: {fileID: 347048232449739590}
   bulletSpawnPoint: {fileID: 289}
   playerHasFlagParticles: {fileID: 2728455901908091792}

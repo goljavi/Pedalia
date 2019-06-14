@@ -44,8 +44,7 @@ public class HeroController : MonoBehaviour
         if(_sceneAudioListener) _sceneAudioListener.enabled = false;
 
         var spawnPoint = LevelManager.Instance.Pick();
-        hero = PhotonNetwork.Instantiate("Hero", spawnPoint.position, Quaternion.identity, 0, new object[] { _instantiateParticles, spawnPoint.forward }).GetComponent<Hero>();
-        hero.flagCount = _flagCount;
+        hero = PhotonNetwork.Instantiate("Hero", spawnPoint.position, Quaternion.identity, 0, new object[] { _instantiateParticles, spawnPoint.forward, _flagCount }).GetComponent<Hero>();
         _hkc = new HeroKeyboardController(hero);
         hero.heroControllerInstance = this;
     }

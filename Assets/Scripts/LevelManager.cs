@@ -62,7 +62,7 @@ public class LevelManager : MonoBehaviour
 
         if (!checkFlag && GameObject.FindGameObjectsWithTag("Flag").Length == 0)
         {
-            if (_flagOwner != null) SetFlagOwner(null);
+            SetFlagOwner(null);
 
             _flagSpawnCounter += Time.deltaTime;
             if (_flagSpawnCounter > timeForFlagToReAppear) InstantiateFlag();

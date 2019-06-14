@@ -49,5 +49,8 @@ MonoBehaviour:
   - RPC_Winner
   - RPC_BeginMatch
   - RPC_DieBeforeMatch
+  - BulletRicochet
+  - RPC_Die
+  - RPC_FlagUpdate
   DisableAutoOpenWizard: 1
   ShowSettings: 1

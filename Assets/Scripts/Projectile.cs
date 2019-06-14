@@ -23,6 +23,7 @@ public class Projectile : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        //transform.position = (Vector3)pv.InstantiationData[1];
         transform.forward = (Vector3)pv.InstantiationData[0];
         _rb.AddForce(transform.forward * bulletImpulse, ForceMode.Impulse);
     }
@@ -39,11 +40,18 @@ public class Projectile : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (PhotonNetwork.IsMasterClient)
+        /*if (PhotonNetwork.IsMasterClient)
         {
-            transform.forward = collision.GetContact(0).normal;
-            _rb.AddForce(transform.forward * bulletImpulse / 2, ForceMode.Impulse);
-        } 
+            pv.RPC("BulletRicochet", RpcTarget.All, collision.GetContact(0).normal, transform.position);
+        }*/ 
+    }
+
+    [PunRPC]
+    void BulletRicochet(Vector3 collisionNormal, Vector3 position)
+    {
+        transform.position = position;
+        transform.forward = collisionNormal;
+        _rb.AddForce(transform.forward * bulletImpulse / 2, ForceMode.Impulse);
     }
 
     private void DestroySelf()

@@ -39,6 +39,7 @@ public class Hero : MonoBehaviour
         _pv = GetComponent<PhotonView>();
         if((bool)_pv.InstantiationData[0]) PhotonNetwork.Instantiate("PlayerSpawn", transform.position + new Vector3(0, 0.5f, 0), Quaternion.identity);
         transform.forward = (Vector3)_pv.InstantiationData[1];
+        _pv.RPC("RPC_FlagUpdate", RpcTarget.All, (int)_pv.InstantiationData[2]);
     }
 
     private void Update()
@@ -167,7 +168,7 @@ public class Hero : MonoBehaviour
     public void Fire()
     {
         if (!_pv.IsMine) return;
-        var projectile = PhotonNetwork.Instantiate("Projectile", bulletSpawnPoint.position, transform.rotation, 0, new object[] { cam.transform.forward });
+        var projectile = PhotonNetwork.Instantiate("Projectile", bulletSpawnPoint.position, transform.rotation, 0, new object[] { cam.transform.forward, bulletSpawnPoint.position });
     }
 
     private void OnCollisionEnter(Collision other)
@@ -188,6 +189,7 @@ public class Hero : MonoBehaviour
 
     public void Die()
     {
+        _pv.RPC("RPC_Die", RpcTarget.All);
         PhotonNetwork.Instantiate("DeathExplosion", transform.position, Quaternion.identity);
         heroControllerInstance.Die();
     }
@@ -205,6 +207,18 @@ public class Hero : MonoBehaviour
     }
 
     [PunRPC]
+    void RPC_Die()
+    {
+        hasFlag = false;
+    }
+
+    [PunRPC]
+    void RPC_FlagUpdate(int flags)
+    {
+        flagCount = flags;
+    }
+
+    [PunRPC]
     void RPC_GetFlag()
     {
         hasFlag = true;
@@ -217,7 +231,7 @@ public class Hero : MonoBehaviour
         hasFlag = false;
         playerHasFlagParticles.SetActive(false);
         flagCount++;
-        heroControllerInstance.AddFlag();
+        if(heroControllerInstance) heroControllerInstance.AddFlag();
         PhotonNetwork.Instantiate("LeaveFlag", transform.position + new Vector3(0, 1, 0), Quaternion.identity);
     }
 
