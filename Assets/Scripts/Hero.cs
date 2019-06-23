@@ -30,7 +30,8 @@ public class Hero : MonoBehaviour
     float _currentCameraRotationX = 0;
     Vector3 _thrusterForce = Vector3.zero;
     bool _jetpackParticlesValueBefore = false;
-    bool usingJetpack = false;
+    bool _usingJetpack = false;
+    bool _jetpackControlDisabled;
 
     // Start is called before the first frame update
     void Start()
@@ -63,7 +64,7 @@ public class Hero : MonoBehaviour
 
         //Thruster force
         var thrust = Vector3.zero;
-        if (usingJetpack && thrustAmount > 0)
+        if (_usingJetpack && thrustAmount > 0 && !_jetpackControlDisabled)
         {
             thrustAmount -= thrustUseSpeed * Time.deltaTime;
             if (thrustAmount > 0.1f)
@@ -78,7 +79,9 @@ public class Hero : MonoBehaviour
 
     public void UsingJetpack(bool value)
     {
-        usingJetpack = value;
+        if(thrustAmount <= 0.01f) _jetpackControlDisabled = true;
+        if(_jetpackControlDisabled && !value) _jetpackControlDisabled = false;
+        _usingJetpack = value;
     }
 
     public void Move(Vector3 velocity)
@@ -179,6 +182,7 @@ public class Hero : MonoBehaviour
             _pv.RPC("RPC_GetPushed", _pv.Owner, bullet.transform.forward);
             PhotonNetwork.Instantiate("BulletExplosion", other.GetContact(0).point, Quaternion.identity);
         }
+        if (_pv.IsMine && other.gameObject.layer == 12) Die();
     }
 
     private void OnTriggerEnter(Collider other)

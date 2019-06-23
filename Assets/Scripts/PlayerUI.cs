@@ -66,7 +66,6 @@ public class PlayerUI : MonoBehaviour
 
     public void SetPlayerUIName(string txt)
     {
-        Debug.Log("Recibí: " + txt);
         _playerName.text = txt;
     }
 

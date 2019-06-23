@@ -37,7 +37,6 @@ public class AvatarManager : MonoBehaviour
                 {
                     if(hero.transform.name == playerName)
                     {
-                        Debug.Log("ya hay otro player con el mismo nombre");
                         nameFound = true;
                         playerName += " Copy";
                         break;
@@ -47,7 +46,6 @@ public class AvatarManager : MonoBehaviour
 
             PlayerInfo.Instance.playerName = playerName;
             _pv.RPC("RPC_AddNameToCharacter", RpcTarget.AllBuffered, playerName);
-            Debug.Log("A la grande le puse: " + playerName);
             PlayerUI.Instance.SetPlayerUIName(playerName);
 
             gameObject.SetLayerRecursively(9);
