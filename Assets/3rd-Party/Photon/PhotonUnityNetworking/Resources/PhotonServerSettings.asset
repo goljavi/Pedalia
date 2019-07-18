@@ -52,5 +52,10 @@ MonoBehaviour:
   - BulletRicochet
   - RPC_Die
   - RPC_FlagUpdate
+  - SetReferenceToSelf
+  - SpawnHero
+  - RPC_ActivateClientCamera
+  - RPC_Move
+  - RPC_UseJetpack
   DisableAutoOpenWizard: 1
   ShowSettings: 1

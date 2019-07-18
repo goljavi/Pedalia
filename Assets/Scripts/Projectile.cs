@@ -38,22 +38,6 @@ public class Projectile : MonoBehaviour
         if(counter >= bulletLifetime) DestroySelf();
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        /*if (PhotonNetwork.IsMasterClient)
-        {
-            pv.RPC("BulletRicochet", RpcTarget.All, collision.GetContact(0).normal, transform.position);
-        }*/ 
-    }
-
-    [PunRPC]
-    void BulletRicochet(Vector3 collisionNormal, Vector3 position)
-    {
-        transform.position = position;
-        transform.forward = collisionNormal;
-        _rb.AddForce(transform.forward * bulletImpulse / 2, ForceMode.Impulse);
-    }
-
     private void DestroySelf()
     {
         PhotonNetwork.Destroy(gameObject);

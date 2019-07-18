@@ -11,8 +11,11 @@ public class Lobby : MonoBehaviourPunCallbacks
     public GameObject room;
     public GameObject playerInfo;
     public GameObject playButton;
+    public GameObject hostButton;
+    public GameObject exitButton;
     public GameObject nameInput;
     public Text playerName;
+    bool _isHost;
 
     private void Awake()
     {
@@ -32,26 +35,40 @@ public class Lobby : MonoBehaviourPunCallbacks
         Cursor.visible = true;
     }
 
+    public void Play(bool isHost = false)
+    {
+        Debug.Log("Lobby: Play()");
+
+        _isHost = isHost;
+        Room.Instance.isHost = isHost;
+
+        nameInput.SetActive(false);
+        hostButton.SetActive(false);
+        playButton.SetActive(false);
+        exitButton.SetActive(false);
+        PlayerInfo.Instance.playerName = string.IsNullOrWhiteSpace(playerName.text) ? "Player" : playerName.text;
+
+        if (PhotonNetwork.IsConnected) OnConnectedToMaster();
+        else PhotonNetwork.ConnectUsingSettings();
+    }
+
     public override void OnConnectedToMaster()
     {
         Debug.Log("Lobby: OnConnectedToMaster()");
-        //PhotonNetwork.AutomaticallySyncScene = true;
-        PhotonNetwork.JoinRandomRoom();
-    }
 
-    public void Play()
-    {
-        Debug.Log("Lobby: Play()");
-        PhotonNetwork.ConnectUsingSettings();
-        playButton.SetActive(false);
-        nameInput.SetActive(false);
-        PlayerInfo.Instance.playerName = string.IsNullOrWhiteSpace(playerName.text) ? "Player" : playerName.text;
+        if (_isHost) CreateRoom();
+        else PhotonNetwork.JoinRandomRoom();
     }
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
         Debug.Log("Lobby: OnJoinRandomFailed()");
-        CreateRoom();
+        var errors = GameObject.Find("Errors");
+        if (errors) errors.GetComponent<Text>().text = "No host was found";
+        nameInput.SetActive(true);
+        hostButton.SetActive(true);
+        playButton.SetActive(true);
+        exitButton.SetActive(true);
     }
 
     void CreateRoom()
@@ -63,12 +80,11 @@ public class Lobby : MonoBehaviourPunCallbacks
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
         Debug.Log("Lobby: OnCreateRoomFailed()");
-        playButton.SetActive(true);
         nameInput.SetActive(true);
+        hostButton.SetActive(true);
+        playButton.SetActive(true);
+        exitButton.SetActive(true);
     }
 
-    public void LeaveGame()
-    {
-        Application.Quit();
-    }
+    public void LeaveGame() => Application.Quit();
 }

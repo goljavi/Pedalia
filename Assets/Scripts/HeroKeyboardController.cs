@@ -5,10 +5,6 @@ using UnityEngine;
 
 public class HeroKeyboardController
 {
-    public static float speed = 7;
-    public float lookSpeed = 5;
-    Hero _hero;
-
     bool _jump;
     float _horizontalAxis;
     float _verticalAxis;
@@ -16,15 +12,13 @@ public class HeroKeyboardController
     float _mouseYAxis;
     bool _fire;
 
-    public HeroKeyboardController(Hero hero)
+    public HeroKeyboardController()
     {
-        _hero = hero;
     }
 
     public void Update(bool frozen)
     {
-        if (!_hero) return;
-
+        Debug.Log("HeroKeyboardController");
         if (!frozen)
         {
             _jump = Input.GetButton("Jump");
@@ -43,20 +37,20 @@ public class HeroKeyboardController
             _mouseYAxis = 0;
             _fire = false;
         }
-        
+
         //Jet pack
-        _hero.UsingJetpack(_jump);
+        if(_jump) HostServer.Instance.PlayerRequestUseJetpack();
 
         //Movement
-        _hero.Move(((_hero.transform.right * _horizontalAxis) + (_hero.transform.forward * _verticalAxis)).normalized * speed);
+        HostServer.Instance.PlayerRequestMove(_horizontalAxis,  _verticalAxis);
 
         //Player Rotation on Y axis
-        _hero.Rotate(new Vector3(0, _mouseXAxis, 0) * lookSpeed);
+        //_hero.Rotate(new Vector3(0, _mouseXAxis, 0) * lookSpeed);
 
         //Camera rotation on X axis
-        _hero.RotateCamera(_mouseYAxis * lookSpeed);
+        //_hero.RotateCamera(_mouseYAxis * lookSpeed);
 
         //Weapon fire
-        if (_fire) _hero.Fire();
+        //if (_fire) _hero.Fire();
     }
 }

@@ -17,6 +17,8 @@ public class Hero : MonoBehaviour
     public float thrustUseSpeed = 1;
     public float thrustRegenSpeed = 0.28f;
     public float thrustAmount = 1;
+    public float speed = 7;
+    public float lookSpeed = 5;
 
     [HideInInspector] public HeroController heroControllerInstance;
     [HideInInspector] public bool hasFlag = false;
@@ -41,6 +43,23 @@ public class Hero : MonoBehaviour
         if((bool)_pv.InstantiationData[0]) PhotonNetwork.Instantiate("PlayerSpawn", transform.position + new Vector3(0, 0.5f, 0), Quaternion.identity);
         transform.forward = (Vector3)_pv.InstantiationData[1];
         _pv.RPC("RPC_FlagUpdate", RpcTarget.All, (int)_pv.InstantiationData[2]);
+
+        foreach(KeyValuePair<Player, Hero> item in HostServer.Instance.heros)
+        {
+            if (item.Value == this)
+            {
+                Debug.Log("Encontré!");
+                _pv.RPC("RPC_ActivateClientCamera", item.Key);
+                break;
+            }
+        }
+
+    }
+
+    [PunRPC]
+    void RPC_ActivateClientCamera()
+    {
+        transform.GetChild(0).GetComponent<Camera>().enabled = true;
     }
 
     private void Update()
@@ -49,11 +68,13 @@ public class Hero : MonoBehaviour
         PerformAnimations();
         ThrusterWorks();
         SetUI();
+        _usingJetpack = false;
+        Jetpack();
     }
 
     void SetUI()
     {
-        PlayerUI.Instance.ThrustAmount = thrustAmount;
+        //PlayerUI.Instance.ThrustAmount = thrustAmount;
     }
 
     void ThrusterWorks()
@@ -77,16 +98,20 @@ public class Hero : MonoBehaviour
         ApplyThruster(thrust);
     }
 
-    public void UsingJetpack(bool value)
+    public void UsingJetpack()
     {
-        if(thrustAmount <= 0.01f) _jetpackControlDisabled = true;
-        if(_jetpackControlDisabled && !value) _jetpackControlDisabled = false;
-        _usingJetpack = value;
+        _usingJetpack = true;
     }
 
-    public void Move(Vector3 velocity)
+    public void Jetpack()
     {
-        _velocity = velocity;
+        if (thrustAmount <= 0.01f) _jetpackControlDisabled = true;
+        if (_jetpackControlDisabled && !_usingJetpack) _jetpackControlDisabled = false;
+    }
+
+    public void Move(float horizontalAxis, float verticalAxis)
+    {
+        _velocity = ((transform.right * horizontalAxis) + (transform.forward * verticalAxis)).normalized * speed;
     }
 
     public void Rotate(Vector3 rotation)
@@ -195,7 +220,7 @@ public class Hero : MonoBehaviour
     {
         _pv.RPC("RPC_Die", RpcTarget.All);
         PhotonNetwork.Instantiate("DeathExplosion", transform.position, Quaternion.identity);
-        heroControllerInstance.Die();
+        HostServer.Instance.Die(this);
     }
 
     public void GetFlag()

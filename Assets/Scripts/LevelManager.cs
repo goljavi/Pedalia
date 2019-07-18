@@ -43,7 +43,7 @@ public class LevelManager : MonoBehaviour
 
         if (!_matchStarted)
         {
-            if (PhotonNetwork.PlayerList.Length > 1) StartCoroutine(StartMatch());
+            //if (PhotonNetwork.PlayerList.Length > 1) StartCoroutine(StartMatch());
             return;
         }
 
@@ -69,13 +69,13 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    IEnumerator StartMatch()
+    /*IEnumerator StartMatch()
     {
         _pv.RPC("RPC_DieBeforeMatch", RpcTarget.All);
         _matchStarted = true;
-        yield return new WaitForSeconds(heroControllerInstance.respawnTime);
+        //yield return new WaitForSeconds(heroControllerInstance.respawnTime);
         _pv.RPC("RPC_BeginMatch", RpcTarget.AllBufferedViaServer);
-    }
+    }*/
 
     [PunRPC]
     void RPC_BeginMatch()
@@ -87,7 +87,7 @@ public class LevelManager : MonoBehaviour
     [PunRPC]
     void RPC_DieBeforeMatch()
     {
-        heroControllerInstance.Die(false);
+        //heroControllerInstance.Die(false);
         PlayerUI.Instance.TriggerMatchBegin();
     }
 

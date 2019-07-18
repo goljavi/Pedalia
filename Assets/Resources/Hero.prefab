@@ -85,6 +85,8 @@ MonoBehaviour:
   thrustUseSpeed: 1
   thrustRegenSpeed: 0.28
   thrustAmount: 1
+  speed: 7
+  lookSpeed: 5
   heroControllerInstance: {fileID: 0}
   hasFlag: 0
   flagCount: 0
@@ -386,7 +388,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 185}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -428,7 +430,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 185}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!114 &505
 MonoBehaviour:
   m_ObjectHideFlags: 0

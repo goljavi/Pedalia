@@ -12,7 +12,7 @@ public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
     public int currentScene;
     public int multiplayerScene = 1;
     public static DisconnectCause disconnectError =  DisconnectCause.None;
-
+    public bool isHost;
     PhotonView _pv;
 
     void Awake()
@@ -72,15 +72,21 @@ public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
         currentScene = s.buildIndex;
         if(currentScene == multiplayerScene)
         {
-            CreatePlayer();
+            disconnectError = DisconnectCause.None;
+            if (isHost) CreateServer();
+            else CreatePlayer();
         }
     }
 
     private void CreatePlayer()
     {
-        disconnectError = DisconnectCause.None;
         Instantiate(Resources.Load("PlayerUI"));
         PhotonNetwork.Instantiate("HeroController", transform.position, Quaternion.identity);
+    }
+
+    private void CreateServer()
+    {
+        PhotonNetwork.Instantiate("HostServer", transform.position, Quaternion.identity);
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)

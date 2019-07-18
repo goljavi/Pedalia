@@ -46,7 +46,7 @@ public class AvatarManager : MonoBehaviour
 
             PlayerInfo.Instance.playerName = playerName;
             _pv.RPC("RPC_AddNameToCharacter", RpcTarget.AllBuffered, playerName);
-            PlayerUI.Instance.SetPlayerUIName(playerName);
+            //PlayerUI.Instance.SetPlayerUIName(playerName);
 
             gameObject.SetLayerRecursively(9);
             gunContainer.SetLayerRecursively(11);
@@ -55,7 +55,7 @@ public class AvatarManager : MonoBehaviour
         }
         else
         {
-            DisableOtherPlayerElements();
+            //DisableOtherPlayerElements();
         }
     }
 
@@ -71,10 +71,4 @@ public class AvatarManager : MonoBehaviour
         localCanvas.SetActive(false);
     }
 
-    void DisableOtherPlayerElements()
-    {
-        cam.enabled = false;
-        audioListener.enabled = false;
-        gunCamera.enabled = false;
-    } 
 }
