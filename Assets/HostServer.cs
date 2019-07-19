@@ -80,11 +80,11 @@ public class HostServer : MonoBehaviourPunCallbacks
     #region host actions
     IEnumerator StartMatch()
     {
-        _pv.RPC("RPC_TriggerMatchBegin", RpcTarget.All);
-        foreach (var hero in heros) Kill(hero.Value, false);
+        _pv.RPC("RPC_TriggerMatchBegin", RpcTarget.Others);
+        foreach (var hero in heros) hero.Value.Die(false);
         _matchStarted = true;
         yield return new WaitForSeconds(3);
-        _pv.RPC("RPC_BeginMatch", RpcTarget.AllBufferedViaServer);
+        _pv.RPC("RPC_BeginMatch", RpcTarget.OthersBuffered);
     }    
 
     [PunRPC]
@@ -109,12 +109,12 @@ public class HostServer : MonoBehaviourPunCallbacks
     void SetFlagOwner(Hero player)
     {
         _flagOwner = player;
-        _pv.RPC("RPC_SetFlagOwnership", RpcTarget.AllBuffered, player ? player.transform.name : "None");
+        _pv.RPC("RPC_SetFlagOwnership", RpcTarget.OthersBuffered, player ? player.transform.name : "None");
     }
 
     void SetWin(Hero player)
     {
-        _pv.RPC("RPC_Winner", RpcTarget.AllBuffered, player.transform.name);
+        _pv.RPC("RPC_Winner", RpcTarget.OthersBuffered, player.transform.name);
         _win = true;
     }
 
@@ -135,13 +135,6 @@ public class HostServer : MonoBehaviourPunCallbacks
     {
         yield return new WaitForSeconds(timeForExit);
         Room.Instance.Disconnect();
-    }
-
-    //PLAYER DEATH
-    public void Kill(Hero hero, bool instantiateParticles = true)
-    {
-        if (!_pv.IsMine) return;
-        hero.Die(instantiateParticles);
     }
 
     void SetThrustUIForEveryone()
@@ -176,8 +169,8 @@ public class HostServer : MonoBehaviourPunCallbacks
                       new object[] { spawnPoint.forward })
                       .GetComponent<Hero>();
 
+        newHero.playerInstance = p;
         heros.Add(p, newHero);
-        foreach (var item in heros) Debug.Log(item);
     }
 
     //PLAYER MOVE
@@ -204,6 +197,18 @@ public class HostServer : MonoBehaviourPunCallbacks
     {
         if (!_pv.IsMine) return;
         heros[p].UsingJetpack();
+    }
+
+    public void PlayerRequestReleaseJetpack()
+    {
+        _pv.RPC("RPC_ReleaseJetpack", serverRef, PhotonNetwork.LocalPlayer);
+    }
+
+    [PunRPC]
+    void RPC_ReleaseJetpack(Player p)
+    {
+        if (!_pv.IsMine) return;
+        heros[p].ReleaseJetpack();
     }
 
     // PLAYER Y AXIS ROTATION
@@ -248,6 +253,7 @@ public class HostServer : MonoBehaviourPunCallbacks
 
     public override void OnPlayerLeftRoom(Player player)
     {
+        if (!PhotonNetwork.IsMasterClient) return;
         base.OnPlayerLeftRoom(player);
         heros[player].Die();
         PhotonNetwork.Destroy(heros[player].gameObject);

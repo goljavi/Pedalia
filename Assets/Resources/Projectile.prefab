@@ -51,7 +51,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bulletLifetime: 5
   bulletImpulse: 50
-  pv: {fileID: 0}
+  owner: {fileID: 0}
 --- !u!114 &2660541199983031031
 MonoBehaviour:
   m_ObjectHideFlags: 0

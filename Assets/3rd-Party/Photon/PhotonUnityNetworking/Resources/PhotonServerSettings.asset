@@ -66,5 +66,12 @@ MonoBehaviour:
   - RPC_TriggerMatchBegin
   - RPC_DisableCam
   - RPC_SetThrustUI
+  - RPC_InitiateClientElements
+  - RPC_ToggleCameras
+  - RPC_InitiateClientElementsForAll
+  - RPC_InitiateClientElementsForInstance
+  - RPC_ReleaseJetpack
+  - RPC_DisablePlayerCamera
+  - RPC_EnablePlayerCamera
   DisableAutoOpenWizard: 1
   ShowSettings: 1

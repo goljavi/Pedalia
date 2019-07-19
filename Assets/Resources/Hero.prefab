@@ -730,6 +730,10 @@ PrefabInstance:
       propertyPath: m_SynchronizeLayers.Array.data[0].SynchronizeType
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1258019779867072, guid: 313ad0ef31f75b84f9f31c0528802fdd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 313ad0ef31f75b84f9f31c0528802fdd, type: 3}
 --- !u!1 &397908772730603752 stripped

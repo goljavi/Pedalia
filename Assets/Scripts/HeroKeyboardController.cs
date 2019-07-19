@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class HeroKeyboardController
 {
-    bool _jump;
+    bool _jumpPress;
+    bool _jumpRelease;
     float _horizontalAxis;
     float _verticalAxis;
     float _mouseXAxis;
@@ -20,7 +21,8 @@ public class HeroKeyboardController
     {
         if (!frozen)
         {
-            _jump = Input.GetButton("Jump");
+            _jumpPress = Input.GetButtonDown("Jump");
+            _jumpRelease = Input.GetButtonUp("Jump");
             _horizontalAxis = Input.GetAxisRaw("Horizontal");
             _verticalAxis = Input.GetAxisRaw("Vertical");
             _mouseXAxis = Input.GetAxisRaw("Mouse X");
@@ -29,7 +31,7 @@ public class HeroKeyboardController
         }
         else
         {
-            _jump = false;
+            _jumpPress = false;
             _horizontalAxis = 0;
             _verticalAxis = 0;
             _mouseXAxis = 0;
@@ -38,7 +40,8 @@ public class HeroKeyboardController
         }
 
         //Jet pack
-        if(_jump) HostServer.Instance.PlayerRequestUseJetpack();
+        if (_jumpPress) HostServer.Instance.PlayerRequestUseJetpack();
+        if (_jumpRelease) HostServer.Instance.PlayerRequestReleaseJetpack();
 
         //Movement
         HostServer.Instance.PlayerRequestMove(_horizontalAxis,  _verticalAxis);

@@ -26,9 +26,14 @@ public class Hero : MonoBehaviour
 
     [HideInInspector] public bool hasFlag = false;
     [HideInInspector] public int flagCount;
+    [HideInInspector] public Player playerInstance;
 
     Rigidbody _rb;
     PhotonView _pv;
+    CapsuleCollider _col;
+    Camera _cam;
+    Camera _gunCam;
+    AudioListener _al;
     Vector3 _velocity = Vector3.zero;
     Vector3 _rotation = Vector3.zero;
     float _cameraRotationX = 0;
@@ -38,50 +43,62 @@ public class Hero : MonoBehaviour
     bool _usingJetpack = false;
     bool _jetpackControlDisabled;
     GameObject _sceneCamera;
-
-    // Start is called before the first frame update
-    void Start()
+    GameObject _playerGraphics;
+    bool _isDead;
+    
+    void Awake()
     {
         _rb = GetComponent<Rigidbody>();
         _pv = GetComponent<PhotonView>();
         transform.forward = (Vector3)_pv.InstantiationData[0];
-        
-        foreach(KeyValuePair<Player, Hero> item in HostServer.Instance.heros)
-        {
-            if (item.Value == this)
-            {
-                _pv.RPC("RPC_EnableCam", item.Key);
-                break;
-            }
-        }
-
+        _pv.RPC("RPC_InitiateClientElementsForAll", RpcTarget.AllBuffered);
+        _pv.RPC("RPC_InitiateClientElementsForInstance", playerInstance);
     }
 
     #region initial spawn, death, respawn
     [PunRPC]
-    public void RPC_EnableCam()
+    public void RPC_InitiateClientElementsForInstance()
     {
-        if (_sceneCamera) _sceneCamera.SetActive(false);
-        else _sceneCamera = GameObject.Find("SceneCamera");
-
-        cam.GetComponent<Camera>().enabled = true;
-        cam.GetComponent<AudioListener>().enabled = true;
-        gunCam.GetComponent<Camera>().enabled = true;
+        if (PhotonNetwork.IsMasterClient) return;
+        _sceneCamera = GameObject.Find("SceneCamera");
+        _cam = cam.GetComponent<Camera>();
+        _al = cam.GetComponent<AudioListener>();
+        _gunCam = gunCam.GetComponent<Camera>();
         gun.layer = 11;
+        if(_sceneCamera) _sceneCamera.SetActive(false);
+        _cam.enabled = true;
+        //_al.enabled = true;
+        _gunCam.enabled = true;
+        _playerGraphics.transform.GetChild(1).gameObject.SetActive(false);
     }
 
     [PunRPC]
-    public void RPC_DisableCam()
+    public void RPC_InitiateClientElementsForAll()
     {
+        _playerGraphics = transform.GetChild(2).gameObject;
+        _col = GetComponent<CapsuleCollider>();
+    }
+
+    [PunRPC]
+    public void RPC_DisablePlayerCamera()
+    {
+        cam.SetActive(false);
         _sceneCamera.SetActive(true);
-        cam.GetComponent<Camera>().enabled = false;
-        cam.GetComponent<AudioListener>().enabled = false;
-        gunCam.GetComponent<Camera>().enabled = false;
+    }
+
+    [PunRPC]
+    public void RPC_EnablePlayerCamera()
+    {
+        cam.SetActive(true);
+        _sceneCamera.SetActive(false);
     }
 
     public void Die(bool particles = true)
     {
+        if (_isDead) return;
+        _isDead = true;
         _pv.RPC("RPC_Die", RpcTarget.All);
+        _pv.RPC("RPC_DisablePlayerCamera", playerInstance);
         if (particles) PhotonNetwork.Instantiate("DeathExplosion", transform.position, Quaternion.identity);
         StartCoroutine(Respawn());
     }
@@ -89,24 +106,29 @@ public class Hero : MonoBehaviour
     [PunRPC]
     void RPC_Die()
     {
-        gameObject.SetActive(false);
         hasFlag = false;
+        _isDead = true;
+        _playerGraphics.SetActive(false);
+        _col.enabled = false;
     }
 
     IEnumerator Respawn()
     {
         yield return new WaitForSeconds(respawnTime);
+        PhotonNetwork.Instantiate("PlayerSpawn", transform.position + new Vector3(0, 0.5f, 0), Quaternion.identity);
+        var pick = LevelManager.Instance.Pick();
+        transform.position = pick.position;
+        transform.rotation = pick.rotation;
         _pv.RPC("RPC_Spawn", RpcTarget.All);
+        _pv.RPC("RPC_EnablePlayerCamera", playerInstance);
     }
 
     [PunRPC]
     void RPC_Spawn()
     {
-        PhotonNetwork.Instantiate("PlayerSpawn", transform.position + new Vector3(0, 0.5f, 0), Quaternion.identity);
-        gameObject.SetActive(true);
-        var pick = LevelManager.Instance.Pick();
-        transform.position = pick.position;
-        transform.rotation = pick.rotation;
+        _isDead = false;
+        _playerGraphics.SetActive(true);
+        _col.enabled = true;
     }
     #endregion
 
@@ -115,7 +137,6 @@ public class Hero : MonoBehaviour
         if (!_pv.IsMine) return;
         PerformAnimations();
         ThrusterWorks();
-        _usingJetpack = false;
         Jetpack();
     }
 
@@ -143,6 +164,11 @@ public class Hero : MonoBehaviour
     public void UsingJetpack()
     {
         _usingJetpack = true;
+    }
+
+    public void ReleaseJetpack()
+    {
+        _usingJetpack = false;
     }
 
     public void Jetpack()
@@ -238,24 +264,20 @@ public class Hero : MonoBehaviour
     public void Fire()
     {
         if (!_pv.IsMine) return;
-        var projectile = PhotonNetwork.Instantiate("Projectile", bulletSpawnPoint.position, transform.rotation, 0, new object[] { cam.transform.forward, bulletSpawnPoint.position });
+        var projectile = PhotonNetwork.Instantiate("Projectile", bulletSpawnPoint.position, transform.rotation, 0, new object[] { cam.transform.forward });
+        projectile.GetComponent<Projectile>().owner = this;
     }
 
     private void OnCollisionEnter(Collision other)
     {
-        var bullet = other.gameObject.GetComponent<Projectile>();
-        if (bullet && bullet.pv.Owner.ActorNumber != _pv.Owner.ActorNumber)
-        {
-            _pv.RPC("RPC_GetPushed", _pv.Owner, bullet.transform.forward);
-            PhotonNetwork.Instantiate("BulletExplosion", other.GetContact(0).point, Quaternion.identity);
-        }
         if (_pv.IsMine && other.gameObject.layer == 12) Die();
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (_pv.IsMine && other.gameObject.layer == 12) Die();
-        if (_pv.IsMine && hasFlag && other.gameObject.layer == 13) RemoveFlag();
+        if (!_pv.IsMine) return;
+        if (other.gameObject.layer == 12) Die();
+        if (hasFlag && other.gameObject.layer == 13) RemoveFlag();
     }
 
     public void GetFlag()
@@ -286,8 +308,7 @@ public class Hero : MonoBehaviour
         PhotonNetwork.Instantiate("LeaveFlag", transform.position + new Vector3(0, 1, 0), Quaternion.identity);
     }
 
-    [PunRPC]
-    void RPC_GetPushed(Vector3 dir)
+    public void GetPushed(Vector3 dir)
     {
         _rb.AddForce(dir * impulseForce, ForceMode.Impulse);
         _rb.AddForce(Vector3.up * impulseForce, ForceMode.Impulse);
