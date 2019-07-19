@@ -57,5 +57,14 @@ MonoBehaviour:
   - RPC_ActivateClientCamera
   - RPC_Move
   - RPC_UseJetpack
+  - RPC_DeactivateClientCamera
+  - RPC_Rotate
+  - RPC_RotateCamera
+  - RPC_EnableCam
+  - RPC_Revive
+  - RPC_Spawn
+  - RPC_TriggerMatchBegin
+  - RPC_DisableCam
+  - RPC_SetThrustUI
   DisableAutoOpenWizard: 1
   ShowSettings: 1

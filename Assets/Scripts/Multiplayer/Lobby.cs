@@ -37,8 +37,6 @@ public class Lobby : MonoBehaviourPunCallbacks
 
     public void Play(bool isHost = false)
     {
-        Debug.Log("Lobby: Play()");
-
         _isHost = isHost;
         Room.Instance.isHost = isHost;
 
@@ -54,8 +52,6 @@ public class Lobby : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("Lobby: OnConnectedToMaster()");
-
         if (_isHost) CreateRoom();
         else PhotonNetwork.JoinRandomRoom();
     }

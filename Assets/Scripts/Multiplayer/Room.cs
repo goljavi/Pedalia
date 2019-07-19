@@ -58,7 +58,6 @@ public class Room : MonoBehaviourPunCallbacks, IInRoomCallbacks
     public override void OnJoinedRoom()
     {
         base.OnJoinedRoom();
-        Debug.Log("Room: OnJoinedRoom()");
         StartGame();
     }
 

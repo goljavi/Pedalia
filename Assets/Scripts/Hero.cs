@@ -7,20 +7,23 @@ using UnityEngine;
 public class Hero : MonoBehaviour
 {
     public GameObject cam;
+    public GameObject gunCam;
+    public GameObject gun;
     public float cameraRotationLimit = 85;
     public float impulseForce = 30;
     public Animator anim;
     public Transform bulletSpawnPoint;
     public GameObject playerHasFlagParticles;
     public GameObject jetpackParticles;
+    public AudioListener audioListener;
     public float thrusterForce = 1500;
     public float thrustUseSpeed = 1;
     public float thrustRegenSpeed = 0.28f;
     public float thrustAmount = 1;
     public float speed = 7;
     public float lookSpeed = 5;
+    public float respawnTime = 3;
 
-    [HideInInspector] public HeroController heroControllerInstance;
     [HideInInspector] public bool hasFlag = false;
     [HideInInspector] public int flagCount;
 
@@ -34,47 +37,86 @@ public class Hero : MonoBehaviour
     bool _jetpackParticlesValueBefore = false;
     bool _usingJetpack = false;
     bool _jetpackControlDisabled;
+    GameObject _sceneCamera;
 
     // Start is called before the first frame update
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
         _pv = GetComponent<PhotonView>();
-        if((bool)_pv.InstantiationData[0]) PhotonNetwork.Instantiate("PlayerSpawn", transform.position + new Vector3(0, 0.5f, 0), Quaternion.identity);
-        transform.forward = (Vector3)_pv.InstantiationData[1];
-        _pv.RPC("RPC_FlagUpdate", RpcTarget.All, (int)_pv.InstantiationData[2]);
-
+        transform.forward = (Vector3)_pv.InstantiationData[0];
+        
         foreach(KeyValuePair<Player, Hero> item in HostServer.Instance.heros)
         {
             if (item.Value == this)
             {
-                Debug.Log("Encontré!");
-                _pv.RPC("RPC_ActivateClientCamera", item.Key);
+                _pv.RPC("RPC_EnableCam", item.Key);
                 break;
             }
         }
 
     }
 
+    #region initial spawn, death, respawn
     [PunRPC]
-    void RPC_ActivateClientCamera()
+    public void RPC_EnableCam()
     {
-        transform.GetChild(0).GetComponent<Camera>().enabled = true;
+        if (_sceneCamera) _sceneCamera.SetActive(false);
+        else _sceneCamera = GameObject.Find("SceneCamera");
+
+        cam.GetComponent<Camera>().enabled = true;
+        cam.GetComponent<AudioListener>().enabled = true;
+        gunCam.GetComponent<Camera>().enabled = true;
+        gun.layer = 11;
     }
+
+    [PunRPC]
+    public void RPC_DisableCam()
+    {
+        _sceneCamera.SetActive(true);
+        cam.GetComponent<Camera>().enabled = false;
+        cam.GetComponent<AudioListener>().enabled = false;
+        gunCam.GetComponent<Camera>().enabled = false;
+    }
+
+    public void Die(bool particles = true)
+    {
+        _pv.RPC("RPC_Die", RpcTarget.All);
+        if (particles) PhotonNetwork.Instantiate("DeathExplosion", transform.position, Quaternion.identity);
+        StartCoroutine(Respawn());
+    }
+
+    [PunRPC]
+    void RPC_Die()
+    {
+        gameObject.SetActive(false);
+        hasFlag = false;
+    }
+
+    IEnumerator Respawn()
+    {
+        yield return new WaitForSeconds(respawnTime);
+        _pv.RPC("RPC_Spawn", RpcTarget.All);
+    }
+
+    [PunRPC]
+    void RPC_Spawn()
+    {
+        PhotonNetwork.Instantiate("PlayerSpawn", transform.position + new Vector3(0, 0.5f, 0), Quaternion.identity);
+        gameObject.SetActive(true);
+        var pick = LevelManager.Instance.Pick();
+        transform.position = pick.position;
+        transform.rotation = pick.rotation;
+    }
+    #endregion
 
     private void Update()
     {
         if (!_pv.IsMine) return;
         PerformAnimations();
         ThrusterWorks();
-        SetUI();
         _usingJetpack = false;
         Jetpack();
-    }
-
-    void SetUI()
-    {
-        //PlayerUI.Instance.ThrustAmount = thrustAmount;
     }
 
     void ThrusterWorks()
@@ -114,14 +156,14 @@ public class Hero : MonoBehaviour
         _velocity = ((transform.right * horizontalAxis) + (transform.forward * verticalAxis)).normalized * speed;
     }
 
-    public void Rotate(Vector3 rotation)
+    public void Rotate(float mouseXAxis)
     {
-        _rotation = rotation;
+        _rotation = new Vector3(0, mouseXAxis, 0) * lookSpeed;
     }
 
-    public void RotateCamera(float cameraRotationX)
+    public void RotateCamera(float mouseYAxis)
     {
-        _cameraRotationX = cameraRotationX;
+        _cameraRotationX = mouseYAxis * lookSpeed;
     }
 
     public void ApplyThruster(Vector3 thrusterForce)
@@ -216,13 +258,6 @@ public class Hero : MonoBehaviour
         if (_pv.IsMine && hasFlag && other.gameObject.layer == 13) RemoveFlag();
     }
 
-    public void Die()
-    {
-        _pv.RPC("RPC_Die", RpcTarget.All);
-        PhotonNetwork.Instantiate("DeathExplosion", transform.position, Quaternion.identity);
-        HostServer.Instance.Die(this);
-    }
-
     public void GetFlag()
     {
         hasFlag = true;
@@ -233,19 +268,7 @@ public class Hero : MonoBehaviour
     {
         PlayerUI.Instance.SetFlagNumberUI(flagCount + 1);
         _pv.RPC("RPC_RemoveFlag", RpcTarget.All);
-    }
-
-    [PunRPC]
-    void RPC_Die()
-    {
-        hasFlag = false;
-    }
-
-    [PunRPC]
-    void RPC_FlagUpdate(int flags)
-    {
-        flagCount = flags;
-    }
+    } 
 
     [PunRPC]
     void RPC_GetFlag()
@@ -260,7 +283,6 @@ public class Hero : MonoBehaviour
         hasFlag = false;
         playerHasFlagParticles.SetActive(false);
         flagCount++;
-        if(heroControllerInstance) heroControllerInstance.AddFlag();
         PhotonNetwork.Instantiate("LeaveFlag", transform.position + new Vector3(0, 1, 0), Quaternion.identity);
     }
 

@@ -2284,7 +2284,6 @@ GameObject:
   m_Component:
   - component: {fileID: 486896509}
   - component: {fileID: 486896508}
-  - component: {fileID: 486896507}
   - component: {fileID: 486896510}
   m_Layer: 0
   m_Name: SceneCamera
@@ -2293,14 +2292,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &486896507
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 486896506}
-  m_Enabled: 1
 --- !u!20 &486896508
 Camera:
   m_ObjectHideFlags: 0
@@ -4767,9 +4758,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a58c9b15183ff904f8088b1296a35f4b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeForFlagToReAppear: 1
-  timeForExit: 5
-  heroControllerInstance: {fileID: 0}
 --- !u!4 &1152584236
 Transform:
   m_ObjectHideFlags: 0

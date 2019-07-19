@@ -18,7 +18,6 @@ public class HeroKeyboardController
 
     public void Update(bool frozen)
     {
-        Debug.Log("HeroKeyboardController");
         if (!frozen)
         {
             _jump = Input.GetButton("Jump");
@@ -45,12 +44,12 @@ public class HeroKeyboardController
         HostServer.Instance.PlayerRequestMove(_horizontalAxis,  _verticalAxis);
 
         //Player Rotation on Y axis
-        //_hero.Rotate(new Vector3(0, _mouseXAxis, 0) * lookSpeed);
+        HostServer.Instance.PlayerRequestRotate(_mouseXAxis);
 
         //Camera rotation on X axis
-        //_hero.RotateCamera(_mouseYAxis * lookSpeed);
+        HostServer.Instance.PlayerRequestRotateCamera(_mouseYAxis);
 
         //Weapon fire
-        //if (_fire) _hero.Fire();
+        if (_fire) HostServer.Instance.PlayerRequestFire();
     }
 }

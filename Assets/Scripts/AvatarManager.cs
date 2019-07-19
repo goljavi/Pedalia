@@ -11,13 +11,11 @@ public class AvatarManager : MonoBehaviour
     public Text playerName;
 
     public Camera cam;
-    public Camera gunCamera;
     public AudioListener audioListener;
 
     public GameObject graphics;
     public GameObject localCanvas;
 
-    public GameObject gunContainer;
     public GameObject particles;
     PhotonView _pv;
 
@@ -49,7 +47,6 @@ public class AvatarManager : MonoBehaviour
             //PlayerUI.Instance.SetPlayerUIName(playerName);
 
             gameObject.SetLayerRecursively(9);
-            gunContainer.SetLayerRecursively(11);
             particles.SetLayerRecursively(0);
             DisableLocalElements();
         }

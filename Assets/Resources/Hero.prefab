@@ -75,19 +75,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cam: {fileID: 185}
+  gunCam: {fileID: 189}
+  gun: {fileID: 411866920739286893}
   cameraRotationLimit: 85
   impulseForce: 2000
   anim: {fileID: 347048232449739590}
   bulletSpawnPoint: {fileID: 289}
   playerHasFlagParticles: {fileID: 2728455901908091792}
   jetpackParticles: {fileID: 1318249867061607271}
+  audioListener: {fileID: 0}
   thrusterForce: 2000
   thrustUseSpeed: 1
   thrustRegenSpeed: 0.28
   thrustAmount: 1
   speed: 7
   lookSpeed: 5
-  heroControllerInstance: {fileID: 0}
+  respawnTime: 3
   hasFlag: 0
   flagCount: 0
 --- !u!54 &373
@@ -136,11 +139,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerName: {fileID: 498}
   cam: {fileID: 369}
-  gunCamera: {fileID: 370}
   audioListener: {fileID: 376}
   graphics: {fileID: 397908772730603752}
   localCanvas: {fileID: 184}
-  gunContainer: {fileID: 187}
   particles: {fileID: 190}
 --- !u!136 &389
 CapsuleCollider:
@@ -548,7 +549,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 188}
   m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0.217, y: 0.138, z: 0.345}
+  m_LocalPosition: {x: 0.202, y: -0.09, z: 0.51}
   m_LocalScale: {x: 0.030000044, y: 0.03, z: 0.030000044}
   m_Children: []
   m_Father: {fileID: 287}
@@ -592,7 +593,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 189}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 3
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -764,10 +765,6 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1349039779122666, guid: c59cd6949918f5b41a9db66174a093c6, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4837533289597206, guid: c59cd6949918f5b41a9db66174a093c6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.206
@@ -812,23 +809,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4837533289597206, guid: c59cd6949918f5b41a9db66174a093c6, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.03000003
-      objectReference: {fileID: 0}
-    - target: {fileID: 4837533289597206, guid: c59cd6949918f5b41a9db66174a093c6, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.03
-      objectReference: {fileID: 0}
-    - target: {fileID: 4837533289597206, guid: c59cd6949918f5b41a9db66174a093c6, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.03000003
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c59cd6949918f5b41a9db66174a093c6, type: 3}
 --- !u!4 &406128312652688273 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4837533289597206, guid: c59cd6949918f5b41a9db66174a093c6,
+    type: 3}
+  m_PrefabInstance: {fileID: 410940519048585863}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &411866920739286893 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1349039779122666, guid: c59cd6949918f5b41a9db66174a093c6,
     type: 3}
   m_PrefabInstance: {fileID: 410940519048585863}
   m_PrefabAsset: {fileID: 0}
